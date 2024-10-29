@@ -1,5 +1,6 @@
 import random
 import datetime
+import pytz
 import asyncio
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
 
@@ -10,9 +11,14 @@ chat_id = '-1002205711968'  # Substitua pelo ID do grupo
 # Inicializando o bot
 bot = Bot(token=api_token)
 
+# Fuso horário de Brasília
+brasilia_tz = pytz.timezone('America/Sao_Paulo')
+
 # Função para gerar horários com intervalo de 10 a 15 minutos, começando a partir de um horário fixo
 def gerar_horarios():
-    base_time = datetime.datetime.now().replace(second=0, microsecond=0, minute=5)  # Define o minuto inicial como 05
+    now = datetime.datetime.now(brasilia_tz)
+    base_time = (now + datetime.timedelta(minutes=(5 - now.minute % 5))).replace(second=0, microsecond=0)
+
     horarios = [base_time]
     
     for i in range(5):  # Gerar mais 5 horários (total de 6), alternando intervalos de 10 e 15 minutos
@@ -38,7 +44,6 @@ async def enviar_sinais(jogo, data_valida):
 🎮 JOGO: {jogo}
 {formatar_horarios(horarios)}
 📅 VÁLIDO ATÉ: {data_valida}
-
 
 🚨 PLATAFORMA REGULARIZADA ⬇️
 🎰 Plataforma: https://abrir.ai/SlotsOfc
@@ -78,7 +83,7 @@ async def enviar_finalizacao():
 # Função principal que coordena o envio das mensagens a cada 1h com a finalização 5 minutos antes
 async def main_loop():
     while True:  # Loop infinito
-        data_valida = (datetime.datetime.now() + datetime.timedelta(days=1)).strftime('%d/%m/%Y')
+        data_valida = (datetime.datetime.now(brasilia_tz) + datetime.timedelta(days=1)).strftime('%d/%m/%Y')
 
         # Lista de jogos e suas respectivas mensagens
         jogos = [
